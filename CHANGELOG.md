@@ -28,6 +28,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.31.0](https://github.com/databricks/appkit/compare/v0.30.1...v0.31.0) (2026-05-06)
+
+### appkit
+
+* **appkit:** scan upward from preferred port in development ([#349](https://github.com/databricks/appkit/issues/349)) ([12598dc](https://github.com/databricks/appkit/commit/12598dc8a665df14732593317e7b9dc1ef075d8a))
+
+
 ## [0.30.1](https://github.com/databricks/appkit/compare/v0.30.0...v0.30.1) (2026-05-06)
 
 ### appkit
