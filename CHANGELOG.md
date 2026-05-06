@@ -26,6 +26,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.30.1](https://github.com/databricks/appkit/compare/v0.30.0...v0.30.1) (2026-05-06)
+
+### appkit
+
+* **appkit:** bind SSE streams to creator and reject cross-user reconnects ([#312](https://github.com/databricks/appkit/issues/312)) ([5bf53c0](https://github.com/databricks/appkit/commit/5bf53c0b5109efd88d223e4e5203f05d11f5c2d7))
+
+
 ## [0.30.0](https://github.com/databricks/appkit/compare/v0.29.0...v0.30.0) (2026-05-05)
 
 ### appkit
