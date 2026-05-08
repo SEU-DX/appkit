@@ -30,6 +30,18 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.32.0](https://github.com/databricks/appkit/compare/v0.31.0...v0.32.0) (2026-05-08)
+
+### appkit
+
+* **appkit:** agents() plugin, createAgent(def), and markdown-driven agents ([#304](https://github.com/databricks/appkit/issues/304)) ([e4cf329](https://github.com/databricks/appkit/commit/e4cf329d8ff8e5994f59688d1e099cab50a679b2)), closes [#349](https://github.com/databricks/appkit/issues/349) [#8](https://github.com/databricks/appkit/issues/8) [#9](https://github.com/databricks/appkit/issues/9) [#11](https://github.com/databricks/appkit/issues/11)
+* **appkit:** plugin infrastructure — attachContext + PluginContext mediator ([#303](https://github.com/databricks/appkit/issues/303)) ([9d2920c](https://github.com/databricks/appkit/commit/9d2920c6266e0015d7cc05b8a62225256e75046f)), closes [#8](https://github.com/databricks/appkit/issues/8) [#9](https://github.com/databricks/appkit/issues/9) [#10](https://github.com/databricks/appkit/issues/10)
+* **appkit:** send internal telemetry via AppkitLog schema ([#332](https://github.com/databricks/appkit/issues/332)) ([cc942b5](https://github.com/databricks/appkit/commit/cc942b5d4ff93ca3e6e9340a38b2a1d151839d50)), closes [#send](https://github.com/databricks/appkit/issues/send) [#send](https://github.com/databricks/appkit/issues/send)
+* **appkit:** tool primitives and ToolProvider surfaces on core plugins ([#302](https://github.com/databricks/appkit/issues/302)) ([95f17b5](https://github.com/databricks/appkit/commit/95f17b5a1e6da427199aaed54149114334dd1fb4))
+
+
 ## [0.31.0](https://github.com/databricks/appkit/compare/v0.30.1...v0.31.0) (2026-05-06)
 
 ### appkit
