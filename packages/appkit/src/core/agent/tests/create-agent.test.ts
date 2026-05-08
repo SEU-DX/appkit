@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
-import { tool } from "../../../core/agent/tools/tool";
-import type { AgentDefinition } from "../../../core/agent/types";
 import { createAgent } from "../create-agent";
+import { tool } from "../tools/tool";
+import type { AgentDefinition } from "../types";
 
 describe("createAgent", () => {
   test("returns the definition unchanged for a simple agent", () => {
@@ -28,7 +28,12 @@ describe("createAgent", () => {
       tools: { get_weather },
     });
 
-    expect(def.tools?.get_weather).toBe(get_weather);
+    // The object form preserves identity; we narrow with typeof to satisfy
+    // the dual ToolRecord | AgentToolsFn shape.
+    expect(typeof def.tools).toBe("object");
+    if (typeof def.tools === "object") {
+      expect(def.tools.get_weather).toBe(get_weather);
+    }
   });
 
   test("accepts sub-agents in a keyed record", () => {

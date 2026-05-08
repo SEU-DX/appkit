@@ -16,13 +16,16 @@ import type {
   ToolProvider,
 } from "shared";
 import { AppKitMcpClient, buildMcpHostPolicy } from "../../connectors/mcp";
+import { getWorkspaceClient } from "../../context";
 import { consumeAdapterStream } from "../../core/agent/consume-adapter-stream";
 import { loadAgentsFromDir } from "../../core/agent/load-agents";
 import { normalizeToolResult } from "../../core/agent/normalize-result";
+import { createPluginsProxy } from "../../core/agent/plugins-map";
 import {
   buildBaseSystemPrompt,
   composeSystemPrompt,
 } from "../../core/agent/system-prompt";
+import { resolveToolkitFromProvider } from "../../core/agent/toolkit-resolver";
 import {
   functionToolToDefinition,
   isFunctionTool,
@@ -32,7 +35,10 @@ import {
 import type {
   AgentDefinition,
   AgentsPluginConfig,
+  AgentTools,
   BaseSystemPromptOption,
+  Plugins,
+  PluginToolkitProvider,
   PromptContext,
   RegisteredAgent,
   ResolvedToolEntry,
@@ -134,6 +140,13 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     string,
     { controller: AbortController; userId: string }
   >();
+  /**
+   * Per-user stream count, kept in sync with `activeStreams` so the
+   * concurrent-stream rate limit check is O(1) instead of O(n) over every
+   * active stream on every request. Mutated only via {@link trackStream}
+   * and {@link untrackStream}.
+   */
+  private userStreamCounts = new Map<string, number>();
   private mcpClient: AppKitMcpClient | null = null;
   private threadStore;
   private approvalGate = new ToolApprovalGate();
@@ -190,13 +203,44 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     };
   }
 
-  /** Count active streams owned by a given user. */
+  /** Count active streams owned by a given user. O(1). */
   private countUserStreams(userId: string): number {
-    let n = 0;
-    for (const entry of this.activeStreams.values()) {
-      if (entry.userId === userId) n++;
+    return this.userStreamCounts.get(userId) ?? 0;
+  }
+
+  /**
+   * Register a stream for `userId` and bump the per-user counter. Paired
+   * with {@link untrackStream}; the two helpers are the only writers to
+   * `activeStreams` + `userStreamCounts`, so the counter cannot drift from
+   * the map.
+   */
+  private trackStream(
+    requestId: string,
+    userId: string,
+    controller: AbortController,
+  ): void {
+    this.activeStreams.set(requestId, { controller, userId });
+    this.userStreamCounts.set(
+      userId,
+      (this.userStreamCounts.get(userId) ?? 0) + 1,
+    );
+  }
+
+  /**
+   * Remove a stream from the active map and decrement the per-user
+   * counter. Idempotent — calling twice for the same `requestId` is a
+   * no-op (the second call sees no entry and returns early).
+   */
+  private untrackStream(requestId: string): void {
+    const entry = this.activeStreams.get(requestId);
+    if (!entry) return;
+    this.activeStreams.delete(requestId);
+    const next = (this.userStreamCounts.get(entry.userId) ?? 1) - 1;
+    if (next <= 0) {
+      this.userStreamCounts.delete(entry.userId);
+    } else {
+      this.userStreamCounts.set(entry.userId, next);
     }
-    return n;
   }
 
   async setup() {
@@ -385,7 +429,7 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
         );
       } catch (err) {
         throw new Error(
-          `Agent '${name}' has no model configured and no DATABRICKS_AGENT_ENDPOINT default available`,
+          `Agent '${name}' has no model configured and no DATABRICKS_SERVING_ENDPOINT_NAME default available`,
           { cause: err instanceof Error ? err : undefined },
         );
       }
@@ -408,13 +452,16 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     src: AgentSource,
   ): Promise<Map<string, ResolvedToolEntry>> {
     const index = new Map<string, ResolvedToolEntry>();
-    const hasExplicitTools = def.tools && Object.keys(def.tools).length > 0;
+    const hasDeclaredTools = def.tools !== undefined;
+    const toolsRecord = this.resolveDefTools(agentName, def);
     const hasExplicitSubAgents =
       def.agents && Object.keys(def.agents).length > 0;
 
     const inheritDefaults = normalizeAutoInherit(this.config.autoInheritTools);
+    // Declaring `tools` (object or function, even an empty record) opts out
+    // of auto-inherit. Same rule for both forms — see plan decision (E1/I1).
     const shouldInherit =
-      !hasExplicitTools &&
+      !hasDeclaredTools &&
       !hasExplicitSubAgents &&
       (src.origin === "file" ? inheritDefaults.file : inheritDefaults.code);
 
@@ -450,7 +497,7 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     // 2. Explicit tools (toolkit entries, function tools, hosted tools)
     const hostedToCollect: import("../../core/agent/tools/hosted-tools").HostedTool[] =
       [];
-    for (const [key, tool] of Object.entries(def.tools ?? {})) {
+    for (const [key, tool] of Object.entries(toolsRecord)) {
       if (isToolkitEntry(tool)) {
         index.set(key, {
           source: "toolkit",
@@ -484,6 +531,63 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     return index;
   }
 
+  /**
+   * Resolves an `AgentDefinition.tools` field to a plain tool record. The
+   * function form is invoked exactly once at agent setup with the typed
+   * {@link Plugins} map; the result replaces the function reference for the
+   * remainder of the registered agent's lifetime.
+   *
+   * Plain object form is returned as-is; an undefined `tools` returns an
+   * empty record. The function form is wrapped in a try/catch so a thrown
+   * callback fails registration with a useful message instead of leaking
+   * the raw stack.
+   */
+  private resolveDefTools(agentName: string, def: AgentDefinition): AgentTools {
+    if (typeof def.tools !== "function") {
+      return def.tools ?? {};
+    }
+    try {
+      return def.tools(this.buildPluginsMap());
+    } catch (err) {
+      throw new Error(
+        `Agent '${agentName}': tools(plugins) callback threw: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+        { cause: err instanceof Error ? err : undefined },
+      );
+    }
+  }
+
+  /**
+   * Builds the typed {@link Plugins} map passed to the function form of
+   * `AgentDefinition.tools`. Each entry exposes the plugin instance directly
+   * (so user code can call typed instance methods including `.toolkit()`);
+   * plugins missing `.toolkit()` get a synthesized fallback that walks
+   * `getAgentTools()` via `resolveToolkitFromProvider`.
+   *
+   * Wrapped in {@link createPluginsProxy} so that accessing an unknown
+   * plugin name throws a named "not registered, Available: ..." error
+   * instead of bubbling up a generic `Cannot read properties of undefined`
+   * from the agent's `tools(plugins)` callback.
+   */
+  private buildPluginsMap(): Plugins {
+    const out: Record<string, PluginToolkitProvider> = {};
+    if (!this.context) {
+      return createPluginsProxy(out, `Agent '${this.name}': tools(plugins)`);
+    }
+    for (const { name, provider } of this.context.getToolProviders()) {
+      const direct = (provider as { toolkit?: unknown }).toolkit;
+      if (typeof direct === "function") {
+        out[name] = provider as unknown as PluginToolkitProvider;
+      } else {
+        out[name] = {
+          toolkit: (opts) => resolveToolkitFromProvider(name, provider, opts),
+        };
+      }
+    }
+    return createPluginsProxy(out, `Agent '${this.name}': tools(plugins)`);
+  }
+
   private async applyAutoInherit(
     agentName: string,
     index: Map<string, ResolvedToolEntry>,
@@ -502,32 +606,19 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
       provider,
     } of this.context.getToolProviders()) {
       if (pluginName === this.name) continue;
-      const withToolkit = provider as ToolProvider & {
-        toolkit?: (opts?: unknown) => Record<string, unknown>;
-      };
-      if (typeof withToolkit.toolkit === "function") {
-        const entries = withToolkit.toolkit() as Record<string, unknown>;
-        for (const [key, maybeEntry] of Object.entries(entries)) {
-          if (!isToolkitEntry(maybeEntry)) continue;
-          if (maybeEntry.autoInheritable !== true) {
-            recordSkip(maybeEntry.pluginName, maybeEntry.localName);
-            continue;
-          }
-          index.set(key, {
-            source: "toolkit",
-            pluginName: maybeEntry.pluginName,
-            localName: maybeEntry.localName,
-            def: { ...maybeEntry.def, name: key },
-          });
-          inherited.push(key);
+      const entries = resolveToolkitFromProvider(pluginName, provider);
+      for (const [key, entry] of Object.entries(entries)) {
+        if (entry.autoInheritable !== true) {
+          recordSkip(entry.pluginName, entry.localName);
+          continue;
         }
-        continue;
-      }
-      // Fallback: providers without a toolkit() still expose getAgentTools().
-      // These cannot be selectively opted in per tool, so we conservatively
-      // skip them during auto-inherit and require explicit `tools:` wiring.
-      for (const tool of provider.getAgentTools()) {
-        recordSkip(pluginName, tool.name);
+        index.set(key, {
+          source: "toolkit",
+          pluginName: entry.pluginName,
+          localName: entry.localName,
+          def: { ...entry.def, name: key },
+        });
+        inherited.push(key);
       }
     }
 
@@ -720,22 +811,34 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
       return;
     }
 
-    let thread = threadId ? await this.threadStore.get(threadId, userId) : null;
-    if (threadId && !thread) {
-      res.status(404).json({ error: `Thread ${threadId} not found` });
+    // ThreadStore can throw on backing-storage failures (DB unreachable,
+    // permission errors, transient I/O). Without a try/catch the
+    // `async` Express handler bubbles the rejection without a response and
+    // the client connection hangs until the proxy times out. Surface the
+    // failure as a 500 so the SSE client falls back instead of waiting.
+    let thread: Thread;
+    try {
+      const existing = threadId
+        ? await this.threadStore.get(threadId, userId)
+        : null;
+      if (threadId && !existing) {
+        res.status(404).json({ error: `Thread ${threadId} not found` });
+        return;
+      }
+      thread = existing ?? (await this.threadStore.create(userId));
+
+      const userMessage: Message = {
+        id: randomUUID(),
+        role: "user",
+        content: message,
+        createdAt: new Date(),
+      };
+      await this.threadStore.addMessage(thread.id, userId, userMessage);
+    } catch (err) {
+      logger.error("threadStore failed in /chat: %O", err);
+      res.status(500).json({ error: "Thread operation failed" });
       return;
     }
-    if (!thread) {
-      thread = await this.threadStore.create(userId);
-    }
-
-    const userMessage: Message = {
-      id: randomUUID(),
-      role: "user",
-      content: message,
-      createdAt: new Date(),
-    };
-    await this.threadStore.addMessage(thread.id, userId, userMessage);
     return this._streamAgent(req, res, registered, thread, userId);
   }
 
@@ -770,30 +873,39 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
       return;
     }
 
-    const thread = await this.threadStore.create(userId);
+    // Same rationale as `_handleChat`: surface threadStore failures as a
+    // 500 instead of letting the async handler hang the client connection.
+    let thread: Thread;
+    try {
+      thread = await this.threadStore.create(userId);
 
-    if (typeof input === "string") {
-      await this.threadStore.addMessage(thread.id, userId, {
-        id: randomUUID(),
-        role: "user",
-        content: input,
-        createdAt: new Date(),
-      });
-    } else {
-      for (const item of input) {
-        const role = (item.role ?? "user") as Message["role"];
-        const content =
-          typeof item.content === "string"
-            ? item.content
-            : JSON.stringify(item.content ?? "");
-        if (!content) continue;
+      if (typeof input === "string") {
         await this.threadStore.addMessage(thread.id, userId, {
           id: randomUUID(),
-          role,
-          content,
+          role: "user",
+          content: input,
           createdAt: new Date(),
         });
+      } else {
+        for (const item of input) {
+          const role = (item.role ?? "user") as Message["role"];
+          const content =
+            typeof item.content === "string"
+              ? item.content
+              : JSON.stringify(item.content ?? "");
+          if (!content) continue;
+          await this.threadStore.addMessage(thread.id, userId, {
+            id: randomUUID(),
+            role,
+            content,
+            createdAt: new Date(),
+          });
+        }
       }
+    } catch (err) {
+      logger.error("threadStore failed in /invocations: %O", err);
+      res.status(500).json({ error: "Thread operation failed" });
+      return;
     }
 
     return this._streamAgent(req, res, registered, thread, userId);
@@ -809,7 +921,7 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
     const abortController = new AbortController();
     const signal = abortController.signal;
     const requestId = randomUUID();
-    this.activeStreams.set(requestId, { controller: abortController, userId });
+    this.trackStream(requestId, userId, abortController);
 
     const tools = Array.from(registered.toolIndex.values()).map((e) => e.def);
     const approvalPolicy = this.resolvedApprovalPolicy;
@@ -919,7 +1031,7 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
         // Any pending approval gates for this stream are auto-denied so the
         // adapter can unwind if it was still waiting.
         this.approvalGate.abortStream(requestId);
-        this.activeStreams.delete(requestId);
+        this.untrackStream(requestId);
         // Stateless agents (e.g. autocomplete) don't persist history; drop
         // the thread so `InMemoryThreadStore` doesn't accumulate one record
         // per request. Swallow delete errors — the stream has already
@@ -1180,7 +1292,7 @@ export class AgentsPlugin extends Plugin implements ToolProvider {
       return;
     }
     entry.controller.abort("Cancelled by user");
-    this.activeStreams.delete(streamId);
+    this.untrackStream(streamId);
     this.approvalGate.abortStream(streamId);
     res.json({ cancelled: true });
   }
