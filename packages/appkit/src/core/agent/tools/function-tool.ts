@@ -1,4 +1,4 @@
-import type { AgentToolDefinition } from "shared";
+import type { AgentToolDefinition, ToolAnnotations } from "shared";
 
 export interface FunctionTool {
   type: "function";
@@ -6,6 +6,16 @@ export interface FunctionTool {
   description?: string | null;
   parameters?: Record<string, unknown> | null;
   strict?: boolean | null;
+  /**
+   * Behavioural hints that drive the agents plugin's approval gate and the
+   * client's approval-card styling. Prefer setting `effect` (one of
+   * `"read" | "write" | "update" | "destructive"`) — any mutating value
+   * forces HITL approval before `execute()` runs. Legacy `destructive: true`
+   * is still honoured. Must be preserved through {@link
+   * functionToolToDefinition} so the plugin sees them when building agent
+   * tool indexes.
+   */
+  annotations?: ToolAnnotations;
   execute: (args: Record<string, unknown>) => Promise<string> | string;
 }
 
@@ -29,5 +39,6 @@ export function functionToolToDefinition(
       type: "object",
       properties: {},
     },
+    ...(tool.annotations ? { annotations: tool.annotations } : {}),
   };
 }

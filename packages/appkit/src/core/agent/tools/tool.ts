@@ -1,3 +1,4 @@
+import type { ToolAnnotations } from "shared";
 import type { z } from "zod";
 import type { FunctionTool } from "./function-tool";
 import { toToolJSONSchema } from "./json-schema";
@@ -6,6 +7,15 @@ export interface ToolConfig<S extends z.ZodType> {
   name: string;
   description?: string;
   schema: S;
+  /**
+   * Behavioural hints forwarded to the resolved tool definition. Prefer
+   * `effect` (`"read" | "write" | "update" | "destructive"`) — any mutating
+   * value forces the agents-plugin approval gate before `execute()` runs
+   * and the client's approval card will colour itself accordingly. Legacy
+   * `destructive: true` still gates. Dropped silently before the fix that
+   * added this field.
+   */
+  annotations?: ToolAnnotations;
   execute: (args: z.infer<S>) => Promise<string> | string;
 }
 
@@ -29,6 +39,7 @@ export function tool<S extends z.ZodType>(config: ToolConfig<S>): FunctionTool {
     name: config.name,
     description: config.description ?? config.name,
     parameters,
+    ...(config.annotations ? { annotations: config.annotations } : {}),
     execute: async (args: Record<string, unknown>) => {
       const parsed = config.schema.safeParse(args);
       if (!parsed.success) {
