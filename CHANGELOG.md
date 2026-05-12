@@ -32,6 +32,19 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.33.0](https://github.com/databricks/appkit/compare/v0.32.0...v0.33.0) (2026-05-12)
+
+### appkit
+
+* **appkit:** allow undefined values in IGenieConfig.spaces ([#322](https://github.com/databricks/appkit/issues/322)) ([d5469e9](https://github.com/databricks/appkit/commit/d5469e9f36acfbfdf7c207fbf4d8dc958ec57425))
+* **appkit:** reference agent-app, dev-playground chat UI, docs, and template ([#306](https://github.com/databricks/appkit/issues/306)) ([6bd6dab](https://github.com/databricks/appkit/commit/6bd6dab1b7c3d3e50d58c6d4640efe1c5f5595eb))
+* **appkit:** tools(plugins) DX, runAgent plugins arg, shared toolkit-resolver ([#305](https://github.com/databricks/appkit/issues/305)) ([a348855](https://github.com/databricks/appkit/commit/a3488558a10d43b1a1f4478f98b54f59108523e7))
+
+* rename AnalyticsFormat to API enum names with legacy aliases ([#328](https://github.com/databricks/appkit/issues/328)) ([77d6a1b](https://github.com/databricks/appkit/commit/77d6a1bb1b6232a595ba028fd230949759689df3)), closes [#256](https://github.com/databricks/appkit/issues/256) [#327](https://github.com/databricks/appkit/issues/327)
+
+
 ## [0.32.0](https://github.com/databricks/appkit/compare/v0.31.0...v0.32.0) (2026-05-08)
 
 ### appkit
