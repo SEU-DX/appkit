@@ -199,8 +199,18 @@ const typedocSidebar: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "api/appkit/Interface.LakebasePool",
+          label: "LakebasePool"
+        },
+        {
+          type: "doc",
           id: "api/appkit/Interface.LakebasePoolConfig",
           label: "LakebasePoolConfig"
+        },
+        {
+          type: "doc",
+          id: "api/appkit/Interface.LakebasePoolManager",
+          label: "LakebasePoolManager"
         },
         {
           type: "doc",
@@ -499,6 +509,11 @@ const typedocSidebar: SidebarsConfig = {
           type: "doc",
           id: "api/appkit/Function.createLakebasePool",
           label: "createLakebasePool"
+        },
+        {
+          type: "doc",
+          id: "api/appkit/Function.createLakebasePoolManager",
+          label: "createLakebasePoolManager"
         },
         {
           type: "doc",
