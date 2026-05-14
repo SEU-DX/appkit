@@ -38,6 +38,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.35.0](https://github.com/databricks/appkit/compare/v0.34.1...v0.35.0) (2026-05-14)
+
+### lakebase
+
+* **lakebase:** add per-user connections via asUser(req) ([#343](https://github.com/databricks/appkit/issues/343)) ([22afef0](https://github.com/databricks/appkit/commit/22afef0d70fecbcc35f13e5897a4a7fb50c3011c))
+
+
 ## [0.34.1](https://github.com/databricks/appkit/compare/v0.34.0...v0.34.1) (2026-05-13)
 
 ### appkit
