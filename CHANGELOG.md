@@ -40,6 +40,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.35.1](https://github.com/databricks/appkit/compare/v0.35.0...v0.35.1) (2026-05-15)
+
+### appkit-ui
+
+* **appkit-ui:** stabilize useAnalyticsQuery params reference to avoid infinite refetch ([#321](https://github.com/databricks/appkit/issues/321)) ([5496c6a](https://github.com/databricks/appkit/commit/5496c6a6ac02979a11094f5e9a55e3d92e2a7236))
+
+
 ## [0.35.0](https://github.com/databricks/appkit/compare/v0.34.1...v0.35.0) (2026-05-14)
 
 ### lakebase
