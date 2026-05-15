@@ -42,6 +42,13 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.35.2](https://github.com/databricks/appkit/compare/v0.35.1...v0.35.2) (2026-05-15)
+
+* unblock SP calls for UC in production ([#351](https://github.com/databricks/appkit/issues/351)) ([d97a2ef](https://github.com/databricks/appkit/commit/d97a2ef0c24b9d47283c4285f85d6e967ec49704))
+
+
 ## [0.35.1](https://github.com/databricks/appkit/compare/v0.35.0...v0.35.1) (2026-05-15)
 
 ### appkit-ui
