@@ -49,10 +49,9 @@ This Software contains code from the following open source projects:
 | [@radix-ui/react-toggle](https://www.npmjs.com/package/@radix-ui/react-toggle) | 1.1.10 | MIT | https://radix-ui.com/primitives |
 | [@radix-ui/react-toggle-group](https://www.npmjs.com/package/@radix-ui/react-toggle-group) | 1.1.11 | MIT | https://radix-ui.com/primitives |
 | [@radix-ui/react-tooltip](https://www.npmjs.com/package/@radix-ui/react-tooltip) | 1.2.8 | MIT | https://radix-ui.com/primitives |
+| [@standard-schema/spec](https://www.npmjs.com/package/@standard-schema/spec) | 1.1.0 | MIT | https://standardschema.dev |
 | [@tanstack/react-table](https://www.npmjs.com/package/@tanstack/react-table) | 8.21.3 | MIT | https://tanstack.com/table |
 | [@types/semver](https://www.npmjs.com/package/@types/semver) | 7.7.1 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/semver |
-| [ajv](https://www.npmjs.com/package/ajv) | 6.12.6, 8.17.1 | MIT | https://ajv.js.org |
-| [ajv-formats](https://www.npmjs.com/package/ajv-formats) | 2.1.1, 3.0.1 | MIT | https://github.com/ajv-validator/ajv-formats#readme |
 | [apache-arrow](https://www.npmjs.com/package/apache-arrow) | 21.1.0 | Apache-2.0 | https://arrow.apache.org/js/ |
 | [class-variance-authority](https://www.npmjs.com/package/class-variance-authority) | 0.7.1 | Apache-2.0 | https://github.com/joe-bell/cva#readme |
 | [clsx](https://www.npmjs.com/package/clsx) | 2.1.1 | MIT | https://github.com/lukeed/clsx#readme |

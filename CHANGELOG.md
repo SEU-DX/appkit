@@ -48,6 +48,13 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.38.0](https://github.com/databricks/appkit/compare/v0.37.0...v0.38.0) (2026-05-22)
+
+* new manifest format ([#261](https://github.com/databricks/appkit/issues/261)) ([7542a03](https://github.com/databricks/appkit/commit/7542a0382fc88faaf2466473a991323e69921ad7)), closes [#7](https://github.com/databricks/appkit/issues/7) [databricks/databricks-agent-skills#79](https://github.com/databricks/databricks-agent-skills/issues/79) [#4](https://github.com/databricks/appkit/issues/4) [#5](https://github.com/databricks/appkit/issues/5) [#9](https://github.com/databricks/appkit/issues/9) [#6](https://github.com/databricks/appkit/issues/6) [#370](https://github.com/databricks/appkit/issues/370)
+
+
 ## [0.37.0](https://github.com/databricks/appkit/compare/v0.36.0...v0.37.0) (2026-05-20)
 
 ### appkit
