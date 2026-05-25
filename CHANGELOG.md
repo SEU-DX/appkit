@@ -50,6 +50,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.38.1](https://github.com/databricks/appkit/compare/v0.38.0...v0.38.1) (2026-05-25)
+
+### appkit
+
+* **appkit:** decouple cache in-flight execution from per-caller abort… ([#398](https://github.com/databricks/appkit/issues/398)) ([37a6b0f](https://github.com/databricks/appkit/commit/37a6b0fa4cc59c8ff45f9ae0229f3a1a9552585c))
+
+
 ## [0.38.0](https://github.com/databricks/appkit/compare/v0.37.0...v0.38.0) (2026-05-22)
 
 * new manifest format ([#261](https://github.com/databricks/appkit/issues/261)) ([7542a03](https://github.com/databricks/appkit/commit/7542a0382fc88faaf2466473a991323e69921ad7)), closes [#7](https://github.com/databricks/appkit/issues/7) [databricks/databricks-agent-skills#79](https://github.com/databricks/databricks-agent-skills/issues/79) [#4](https://github.com/databricks/appkit/issues/4) [#5](https://github.com/databricks/appkit/issues/5) [#9](https://github.com/databricks/appkit/issues/9) [#6](https://github.com/databricks/appkit/issues/6) [#370](https://github.com/databricks/appkit/issues/370)
