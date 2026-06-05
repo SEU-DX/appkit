@@ -54,6 +54,19 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.40.0](https://github.com/databricks/appkit/compare/v0.39.0...v0.40.0) (2026-06-05)
+
+### appkit
+
+* **appkit:** non-blocking typegen on Analytics ([#406](https://github.com/databricks/appkit/issues/406)) ([31ab42e](https://github.com/databricks/appkit/commit/31ab42e0a2b99a5f71b51782b6efedaaa16f21d8))
+
+### appkit-ui
+
+* **appkit-ui:** generic ResourceStatusProvider + indicator (with analytics adapter) ([#416](https://github.com/databricks/appkit/issues/416)) ([2609f34](https://github.com/databricks/appkit/commit/2609f34040d0e9c872be6d72ab55160f8da7d9e4)), closes [#415](https://github.com/databricks/appkit/issues/415)
+
+
 ## [0.39.0](https://github.com/databricks/appkit/compare/v0.38.1...v0.39.0) (2026-06-05)
 
 ### analytics
