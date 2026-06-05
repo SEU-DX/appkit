@@ -52,6 +52,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.39.0](https://github.com/databricks/appkit/compare/v0.38.1...v0.39.0) (2026-06-05)
+
+### analytics
+
+* **analytics:** auto-start SQL warehouse and stream warehouse_status SSE events ([#415](https://github.com/databricks/appkit/issues/415)) ([2f107d0](https://github.com/databricks/appkit/commit/2f107d0403cb777444890ee57092025f17db471b))
+
+
 ## [0.38.1](https://github.com/databricks/appkit/compare/v0.38.0...v0.38.1) (2026-05-25)
 
 ### appkit
