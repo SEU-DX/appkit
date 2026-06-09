@@ -1,5 +1,8 @@
 {
-  "name": "@databricks/appkit",
+  "name": "@seu-dx/appkit",
+  "publishConfig": {
+    "registery": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "version": "0.41.1",
   "main": "./dist/index.js",
