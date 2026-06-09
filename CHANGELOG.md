@@ -56,6 +56,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.41.0](https://github.com/databricks/appkit/compare/v0.40.0...v0.41.0) (2026-06-09)
+
+### shared
+
+* **shared:** add scaffolding rule to treat init output as starter code ([#423](https://github.com/databricks/appkit/issues/423)) ([ab6f4e2](https://github.com/databricks/appkit/commit/ab6f4e284a677f37d40a4033a1cb750560aa57e6))
+
+
 ## [0.40.0](https://github.com/databricks/appkit/compare/v0.39.0...v0.40.0) (2026-06-05)
 
 ### appkit
