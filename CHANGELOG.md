@@ -58,6 +58,15 @@ All notable changes to this project will be documented in this file.
 
 # Changelog
 
+# Changelog
+
+## [0.41.1](https://github.com/databricks/appkit/compare/v0.41.0...v0.41.1) (2026-06-09)
+
+### appkit
+
+* **appkit:** trim x-forwarded-user in core OBO path ([#427](https://github.com/databricks/appkit/issues/427)) ([9d94cab](https://github.com/databricks/appkit/commit/9d94cab656111aeec82ff32d08b4dc2b7150cccf))
+
+
 ## [0.41.0](https://github.com/databricks/appkit/compare/v0.40.0...v0.41.0) (2026-06-09)
 
 ### shared
